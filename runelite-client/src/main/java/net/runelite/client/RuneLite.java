@@ -83,6 +83,7 @@ import net.runelite.client.externalplugins.ExternalPluginManager;
 import net.runelite.client.plugins.PluginManager;
 import net.runelite.client.plugins.microbot.Microbot;
 import net.runelite.client.plugins.microbot.externalplugins.MicrobotPluginManager;
+import net.runelite.client.plugins.microbot.jagexlogin.JagexAccountLogin;
 import net.runelite.client.plugins.microbot.recovery.RecoveryPrompt;
 import net.runelite.client.plugins.microbot.recovery.StartupRecovery;
 import net.runelite.client.proxy.ProxyChecker;
@@ -219,6 +220,7 @@ public class RuneLite
 		parser.accepts("profile", "Configuration profile to use").withRequiredArg();
 		parser.accepts("noupdate", "Skips the launcher update");
 		parser.accepts("clean-randomdat", "Clean random dat file");
+		parser.accepts("jagex-login", "Sign in to a Jagex account without the Jagex Launcher, e.g. to switch account");
 
         final ArgumentAcceptingOptionSpec<String> proxyInfo = parser.accepts("proxy", "Use a specified proxy. Format: scheme://user:pass@host:port")
                 .withRequiredArg().ofType(String.class);
@@ -294,6 +296,9 @@ public class RuneLite
 
 		final OkHttpClient okHttpClient = buildHttpClient(options.has("insecure-skip-tls-verification"));
 		RuneLiteAPI.CLIENT = okHttpClient;
+
+		// Must run before the game client loads, as it reads credentials.properties on startup
+		JagexAccountLogin.runIfNeeded(okHttpClient, options.has("jagex-login"));
 
 		SplashScreen.init();
 
